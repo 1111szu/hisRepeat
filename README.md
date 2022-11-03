@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## History Repeats Itself: Human Motion Prediction via Motion Attention
 This is the code for the paper
 
@@ -127,3 +128,6 @@ Some of our evaluation code and data process code was adapted/ported from [Resid
 
 ### Licence
 MIT
+=======
+# hisRepeat
+>>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
