@@ -16,17 +16,10 @@ class GraphConvolution(nn.Module):
 
     def __init__(self, in_features, out_features, bias=True, node_n=48):
         super(GraphConvolution, self).__init__()
-<<<<<<< HEAD
-        self.in_features = in_features
-        self.out_features = out_features
-        self.weight = Parameter(torch.FloatTensor(in_features, out_features))
-        self.att = Parameter(torch.FloatTensor(node_n, node_n))
-=======
         self.in_features = in_features # 定义初始化变量，输入样本的特征大小
         self.out_features = out_features # 输出样本的特征大小
         self.weight = Parameter(torch.FloatTensor(in_features, out_features)) # 模型的参数
         self.att = Parameter(torch.FloatTensor(node_n, node_n)) # 矩阵输入变量
->>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
         if bias:
             self.bias = Parameter(torch.FloatTensor(out_features))
         else:
@@ -35,33 +28,20 @@ class GraphConvolution(nn.Module):
 
     def reset_parameters(self):
         stdv = 1. / math.sqrt(self.weight.size(1))
-<<<<<<< HEAD
-        self.weight.data.uniform_(-stdv, stdv)
-=======
         self.weight.data.uniform_(-stdv, stdv) # 均匀分布，上下限为 stdv
->>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
         self.att.data.uniform_(-stdv, stdv)
         if self.bias is not None:
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, input):
-<<<<<<< HEAD
-        support = torch.matmul(input, self.weight)
-        output = torch.matmul(self.att, support)
-=======
         support = torch.matmul(input, self.weight) #? 应该是频域卷积
         output = torch.matmul(self.att, support) # 
->>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
         if self.bias is not None:
             return output + self.bias
         else:
             return output
 
-<<<<<<< HEAD
-    def __repr__(self):
-=======
     def __repr__(self): # 这个函数用于显示类说明
->>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
         return self.__class__.__name__ + ' (' \
                + str(self.in_features) + ' -> ' \
                + str(self.out_features) + ')'
@@ -71,10 +51,7 @@ class GC_Block(nn.Module):
     def __init__(self, in_features, p_dropout, bias=True, node_n=48):
         """
         Define a residual block of GCN
-<<<<<<< HEAD
-=======
         残差
->>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
         """
         super(GC_Block, self).__init__()
         self.in_features = in_features
@@ -87,15 +64,7 @@ class GC_Block(nn.Module):
         self.bn2 = nn.BatchNorm1d(node_n * in_features)
 
         self.do = nn.Dropout(p_dropout)
-<<<<<<< HEAD
-        self.act_f = nn.Tanh()
 
-    def forward(self, x):
-        y = self.gc1(x)
-        b, n, f = y.shape
-        y = self.bn1(y.view(b, -1)).view(b, n, f)
-        y = self.act_f(y)
-=======
         self.act_f = nn.Tanh() # 激活函数
 
     def forward(self, x):
@@ -104,7 +73,6 @@ class GC_Block(nn.Module):
         b, n, f = y.shape
         y = self.bn1(y.view(b, -1)).view(b, n, f) # 归一化
         y = self.act_f(y) # 通过激活函数
->>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
         y = self.do(y)
 
         y = self.gc2(y)
@@ -126,21 +94,12 @@ class GCN(nn.Module):
         """
         :param input_feature: num of input feature
         :param hidden_feature: num of hidden feature
-<<<<<<< HEAD
-        :param p_dropout: drop out prob.
-        :param num_stage: number of residual blocks
-        :param node_n: number of nodes in graph
-        """
-        super(GCN, self).__init__()
-        self.num_stage = num_stage
-=======
         :param p_dropout: drop out prob. 随机让一些神经元不参与训练
         :param num_stage: number of residual blocks 
         :param node_n: number of nodes in graph
         """
         super(GCN, self).__init__()
         self.num_stage = num_stage # 残差块大小
->>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
 
         self.gc1 = GraphConvolution(input_feature, hidden_feature, node_n=node_n)
         self.bn1 = nn.BatchNorm1d(node_n * hidden_feature)
@@ -161,11 +120,8 @@ class GCN(nn.Module):
         b, n, f = y.shape
         y = self.bn1(y.view(b, -1)).view(b, n, f)
         y = self.act_f(y)
-<<<<<<< HEAD
-        y = self.do(y)
-=======
+
         y = self.do(y) # 随机丢掉一些神经元
->>>>>>> 46241050c682435e84dda839238b2c1f1be1c9bd
 
         for i in range(self.num_stage):
             y = self.gcbs[i](y)
