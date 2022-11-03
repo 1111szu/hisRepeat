@@ -409,8 +409,7 @@ def load_data_cmu_3d(path_to_dataset, actions, input_n, output_n, data_std=0, da
             filename = '{}/{}/{}_{}.txt'.format(path_to_dataset, action, action, examp_index + 1)
             action_sequence = readCSVasFloat(filename)
             n, d = action_sequence.shape
-            # exptmps = torch.from_numpy(action_sequence).float().cuda()
-            exptmps = torch.from_numpy(action_sequence).float()
+            exptmps = torch.from_numpy(action_sequence).float().cuda()
             xyz = expmap2xyz_torch_cmu(exptmps)
             xyz = xyz.view(-1, 38 * 3)
             xyz = xyz.cpu().data.numpy()
@@ -474,14 +473,12 @@ def rotmat2euler_torch(R):
     :return: N*3
     """
     n = R.data.shape[0]
-    # eul = torch.zeros(n, 3).float().cuda()
-    eul = torch.zeros(n, 3).float()
+    eul = torch.zeros(n, 3).float().cuda()
     idx_spec1 = (R[:, 0, 2] == 1).nonzero().cpu().data.numpy().reshape(-1).tolist()
     idx_spec2 = (R[:, 0, 2] == -1).nonzero().cpu().data.numpy().reshape(-1).tolist()
     if len(idx_spec1) > 0:
         R_spec1 = R[idx_spec1, :, :]
-        # eul_spec1 = torch.zeros(len(idx_spec1), 3).float().cuda()
-        eul_spec1 = torch.zeros(len(idx_spec1), 3).float()
+        eul_spec1 = torch.zeros(len(idx_spec1), 3).float().cuda()
         eul_spec1[:, 2] = 0
         eul_spec1[:, 1] = -np.pi / 2
         delta = torch.atan2(R_spec1[:, 0, 1], R_spec1[:, 0, 2])
@@ -490,8 +487,7 @@ def rotmat2euler_torch(R):
 
     if len(idx_spec2) > 0:
         R_spec2 = R[idx_spec2, :, :]
-        # eul_spec2 = torch.zeros(len(idx_spec2), 3).float().cuda()
-        eul_spec2 = torch.zeros(len(idx_spec2), 3).float()
+        eul_spec2 = torch.zeros(len(idx_spec2), 3).float().cuda()
         eul_spec2[:, 2] = 0
         eul_spec2[:, 1] = np.pi / 2
         delta = torch.atan2(R_spec2[:, 0, 1], R_spec2[:, 0, 2])
@@ -502,8 +498,7 @@ def rotmat2euler_torch(R):
     idx_remain = np.setdiff1d(np.setdiff1d(idx_remain, idx_spec1), idx_spec2).tolist()
     if len(idx_remain) > 0:
         R_remain = R[idx_remain, :, :]
-        # eul_remain = torch.zeros(len(idx_remain), 3).float().cuda()
-        eul_remain = torch.zeros(len(idx_remain), 3).float()
+        eul_remain = torch.zeros(len(idx_remain), 3).float().cuda()
         eul_remain[:, 1] = -torch.asin(R_remain[:, 0, 2])
         eul_remain[:, 0] = torch.atan2(R_remain[:, 1, 2] / torch.cos(eul_remain[:, 1]),
                                        R_remain[:, 2, 2] / torch.cos(eul_remain[:, 1]))
@@ -534,8 +529,7 @@ def rotmat2quat_torch(R):
     t3 = R[:, 2, 2]
     costheta = (t1 + t2 + t3 - 1) / 2
     theta = torch.atan2(sintheta, costheta)
-    # q = torch.zeros(R.shape[0], 4).float().cuda()
-    q = torch.zeros(R.shape[0], 4).float()
+    q = torch.zeros(R.shape[0], 4).float().cuda()
     q[:, 0] = torch.cos(theta / 2)
     q[:, 1:] = torch.mul(r0, torch.sin(theta / 2).unsqueeze(1).repeat(1, 3))
 
@@ -574,10 +568,7 @@ def expmap2rotmat_torch(r):
     r1 = r1.view(-1, 3, 3)
     r1 = r1 - r1.transpose(1, 2)
     n = r1.data.shape[0]
-    # R = torch.eye(3, 3).repeat(n, 1, 1).float().cuda() + torch.mul(
-    #     torch.sin(theta).unsqueeze(1).repeat(1, 9).view(-1, 3, 3), r1) + torch.mul(
-    #     (1 - torch.cos(theta).unsqueeze(1).repeat(1, 9).view(-1, 3, 3)), torch.matmul(r1, r1))
-    R = torch.eye(3, 3).repeat(n, 1, 1).float() + torch.mul(
+    R = torch.eye(3, 3).repeat(n, 1, 1).float().cuda() + torch.mul(
         torch.sin(theta).unsqueeze(1).repeat(1, 9).view(-1, 3, 3), r1) + torch.mul(
         (1 - torch.cos(theta).unsqueeze(1).repeat(1, 9).view(-1, 3, 3)), torch.matmul(r1, r1))
     return R

@@ -16,7 +16,6 @@ def orth_project(cam, pts):
     :param pts: b*k*3
     :return:
     """
-    #
     s = cam[:, 0:1].unsqueeze(1).repeat(1, pts.shape[1], 2)
     T = cam[:, 1:].unsqueeze(1).repeat(1, pts.shape[1], 1)
 
@@ -29,7 +28,6 @@ def opt_cam(x, x_target):
     :param x_target: N K 3 or  N K 2
     :return:
     """
-    #
     if x_target.shape[2] == 2:
         vis = torch.ones_like(x_target[:, :, :1])
     else:
@@ -45,9 +43,7 @@ def opt_cam(x, x_target):
     xmu = vis * (xx - mu1)
     xtmu = vis * (xxt - mu2)
 
-    # eps = 1e-6 * torch.eye(2).float().cuda()
-    eps = 1e-6 * torch.eye(2).float().cpu()
-
+    eps = 1e-6 * torch.eye(2).float().cuda()
     Ainv = torch.inverse(torch.matmul(xmu.transpose(1, 2), xmu) + eps.unsqueeze(0))
     B = torch.matmul(xmu.transpose(1, 2), xtmu)
     tmp_s = torch.matmul(Ainv, B)
@@ -60,7 +56,6 @@ def opt_cam(x, x_target):
 
 
 def get_dct_matrix(N):
-    # 离散余弦变换
     dct_m = np.eye(N)
     for k in np.arange(N):
         for i in np.arange(N):

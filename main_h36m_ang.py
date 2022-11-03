@@ -23,7 +23,7 @@ def main(opt):
     kernel_size = opt.kernel_size
     net_pred = AttModel.AttModel(in_features=in_features, kernel_size=kernel_size, d_model=d_model,
                                  num_stage=opt.num_stage, dct_n=opt.dct_n)
-    # net_pred.cuda()
+    net_pred.cuda()
 
     optimizer = optim.Adam(filter(lambda x: x.requires_grad, net_pred.parameters()), lr=opt.lr_now)
     print(">>> total params: {:.2f}M".format(sum(p.numel() for p in net_pred.parameters()) / 1000000.0))
@@ -142,9 +142,7 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
             continue
         n += batch_size
         bt = time.time()
-        # ang_h36 = ang_h36.float().cuda()
-        ang_h36 = ang_h36.float()
-
+        ang_h36 = ang_h36.float().cuda()
         ang_sup = ang_h36.clone()[:, :, dim_used][:, -out_n - seq_in:]
         ang_src = ang_h36.clone()[:, :, dim_used]
         ang_out_all = net_pred(ang_src, output_n=out_n, itera=itera, input_n=in_n)

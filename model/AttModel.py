@@ -57,10 +57,8 @@ class AttModel(Module):
         src_query_tmp = src_tmp.transpose(1, 2)[:, :, -self.kernel_size:].clone()
 
         dct_m, idct_m = util.get_dct_matrix(self.kernel_size + output_n)
-        # dct_m = torch.from_numpy(dct_m).float().cuda()
-        dct_m = torch.from_numpy(dct_m).float()
-        # idct_m = torch.from_numpy(idct_m).float().cuda()
-        idct_m = torch.from_numpy(idct_m).float()
+        dct_m = torch.from_numpy(dct_m).float().cuda()
+        idct_m = torch.from_numpy(idct_m).float().cuda()
 
         vn = input_n - self.kernel_size - output_n + 1
         vl = self.kernel_size + output_n
@@ -172,10 +170,8 @@ class AttModelPerParts(Module):
         src_query_tmp = src_tmp.transpose(1, 2)[:, :, -self.kernel_size:].clone()
 
         dct_m, idct_m = util.get_dct_matrix(self.kernel_size + output_n)
-        # dct_m = torch.from_numpy(dct_m).float().cuda()
-        dct_m = torch.from_numpy(dct_m).float()
-        # idct_m = torch.from_numpy(idct_m).float().cuda()
-        idct_m = torch.from_numpy(idct_m).float()
+        dct_m = torch.from_numpy(dct_m).float().cuda()
+        idct_m = torch.from_numpy(idct_m).float().cuda()
 
         vn = input_n - self.kernel_size - output_n + 1
         vl = self.kernel_size + output_n
@@ -200,8 +196,7 @@ class AttModelPerParts(Module):
             query_tmp = torch.cat(query_tmp, dim=1)
             score_tmp = torch.matmul(query_tmp.transpose(2, 3), key_tmp) + 1e-15
             att_tmp = score_tmp / (torch.sum(score_tmp, dim=3, keepdim=True))
-            # dct_att_tmp = torch.zeros([bs, self.in_features, self.dct_n]).float().cuda()
-            dct_att_tmp = torch.zeros([bs, self.in_features, self.dct_n]).float()
+            dct_att_tmp = torch.zeros([bs, self.in_features, self.dct_n]).float().cuda()
             for ii, pidx in enumerate(self.parts_idx):
                 dct_att_tt = torch.matmul(att_tmp[:, ii], src_value_tmp[:, :, pidx]
                                           .reshape([bs, -1, len(pidx) * self.dct_n])).squeeze(1)
