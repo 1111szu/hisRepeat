@@ -55,8 +55,10 @@ class Datasets(Dataset):
                 action = acts[action_idx]
                 if self.split <= 1:
                     for subact in [1, 2]:  # subactions
-                        print("Reading subject {0}, action {1}, subaction {2}".format(subj, action, subact))
-                        filename = '{0}/S{1}/{2}_{3}.txt'.format(self.path_to_data, subj, action, subact)
+                        print("Reading subject {0}, action {1}, subaction {2}".format(
+                            subj, action, subact))
+                        filename = '{0}/S{1}/{2}_{3}.txt'.format(
+                            self.path_to_data, subj, action, subact)
                         the_sequence = data_utils.readCSVasFloat(filename)
                         n, d = the_sequence.shape
                         even_list = range(0, n, self.sample_rate)
@@ -68,14 +70,19 @@ class Datasets(Dataset):
                         # p3d = data_utils.expmap2xyz_torch(the_sequence)
                         self.seq[(subj, action, subact)] = the_sequence
 
-                        valid_frames = np.arange(0, num_frames - seq_len + 1, opt.skip_rate)
+                        valid_frames = np.arange(
+                            0, num_frames - seq_len + 1, opt.skip_rate)
 
-                        tmp_data_idx_1 = [(subj, action, subact)] * len(valid_frames)
+                        tmp_data_idx_1 = [
+                            (subj, action, subact)] * len(valid_frames)
                         tmp_data_idx_2 = list(valid_frames)
-                        self.data_idx.extend(zip(tmp_data_idx_1, tmp_data_idx_2))
+                        self.data_idx.extend(
+                            zip(tmp_data_idx_1, tmp_data_idx_2))
                 else:
-                    print("Reading subject {0}, action {1}, subaction {2}".format(subj, action, 1))
-                    filename = '{0}/S{1}/{2}_{3}.txt'.format(self.path_to_data, subj, action, 1)
+                    print("Reading subject {0}, action {1}, subaction {2}".format(
+                        subj, action, 1))
+                    filename = '{0}/S{1}/{2}_{3}.txt'.format(
+                        self.path_to_data, subj, action, 1)
                     the_sequence1 = data_utils.readCSVasFloat(filename)
                     n, d = the_sequence1.shape
                     even_list = range(0, n, self.sample_rate)
@@ -87,8 +94,10 @@ class Datasets(Dataset):
                     # p3d1 = data_utils.expmap2xyz_torch(the_seq1)
                     self.seq[(subj, action, 1)] = the_sequence1
 
-                    print("Reading subject {0}, action {1}, subaction {2}".format(subj, action, 2))
-                    filename = '{0}/S{1}/{2}_{3}.txt'.format(self.path_to_data, subj, action, 2)
+                    print("Reading subject {0}, action {1}, subaction {2}".format(
+                        subj, action, 2))
+                    filename = '{0}/S{1}/{2}_{3}.txt'.format(
+                        self.path_to_data, subj, action, 2)
                     the_sequence2 = data_utils.readCSVasFloat(filename)
                     n, d = the_sequence2.shape
                     even_list = range(0, n, self.sample_rate)
