@@ -3,6 +3,7 @@ import numpy as np
 
 
 def lr_decay_mine(optimizer, lr_now, gamma):
+    # 更新学习率
     lr = lr_now * gamma
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
@@ -45,7 +46,8 @@ def opt_cam(x, x_target):
 
     eps = 1e-6 * torch.eye(2).float().cuda()
 
-    Ainv = torch.inverse(torch.matmul(xmu.transpose(1, 2), xmu) + eps.unsqueeze(0))
+    Ainv = torch.inverse(torch.matmul(
+        xmu.transpose(1, 2), xmu) + eps.unsqueeze(0))
     B = torch.matmul(xmu.transpose(1, 2), xtmu)
     tmp_s = torch.matmul(Ainv, B)
     scale = ((tmp_s[:, 0, 0] + tmp_s[:, 1, 1]) / 2.0).unsqueeze(1)

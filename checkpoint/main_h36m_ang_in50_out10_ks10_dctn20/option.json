@@ -13,7 +13,7 @@
     "dct_n": 20,
     "lr_now": 0.0005,
     "max_norm": 10000,
-    "epoch": 5,
+    "epoch": 50,
     "batch_size": 32,
     "test_batch_size": 32,
     "is_load": false

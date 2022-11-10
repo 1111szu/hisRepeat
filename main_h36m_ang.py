@@ -14,6 +14,7 @@ import torch.optim as optim
 
 
 def main(opt):
+    # 初始化基本参数
     lr_now = opt.lr_now
     start_epoch = 1
     # opt.is_eval = True
@@ -21,14 +22,18 @@ def main(opt):
     in_features = opt.in_features  # 48
     d_model = opt.d_model
     kernel_size = opt.kernel_size
+    # 预测模型
     net_pred = AttModel.AttModel(in_features=in_features, kernel_size=kernel_size, d_model=d_model,
                                  num_stage=opt.num_stage, dct_n=opt.dct_n)
     net_pred.cuda()
 
-    optimizer = optim.Adam(filter(lambda x: x.requires_grad, net_pred.parameters()), lr=opt.lr_now)
-    print(">>> total params: {:.2f}M".format(sum(p.numel() for p in net_pred.parameters()) / 1000000.0))
+    optimizer = optim.Adam(
+        filter(lambda x: x.requires_grad, net_pred.parameters()), lr=opt.lr_now)
+    print(">>> total params: {:.2f}M".format(sum(p.numel()
+          for p in net_pred.parameters()) / 1000000.0))
 
     if opt.is_load or opt.is_eval:
+        # 读取已存在模型
         model_path_len = './{}/ckpt_best.pth.tar'.format(opt.ckpt)
         print(">>> loading ckpt len from '{}'".format(model_path_len))
         ckpt = torch.load(model_path_len)
@@ -39,21 +44,25 @@ def main(opt):
         # net.load_state_dict(ckpt)
         # optimizer.load_state_dict(ckpt['optimizer'])
         # lr_now = util.lr_decay_mine(optimizer, lr_now, 0.2)
-        print(">>> ckpt len loaded (epoch: {} | err: {})".format(start_epoch, err_best))
+        print(">>> ckpt len loaded (epoch: {} | err: {})".format(
+            start_epoch, err_best))
 
     print('>>> loading datasets')
-
+    # 如果不是测试
     if not opt.is_eval:
         # dataset = datasets.Datasets(opt, split=0)
         # actions = ["walking", "eating", "smoking", "discussion", "directions",
         #            "greeting", "phoning", "posing", "purchases", "sitting",
         #            "sittingdown", "takingphoto", "waiting", "walkingdog",
         #            "walkingtogether"]
-        dataset = datasets.Datasets(opt, split=0)
+        dataset = datasets.Datasets(opt, split=0)  # 训练集
         print('>>> Training dataset length: {:d}'.format(dataset.__len__()))
-        data_loader = DataLoader(dataset, batch_size=opt.batch_size, shuffle=True, num_workers=0, pin_memory=True)
-        valid_dataset = datasets.Datasets(opt, split=1)
-        print('>>> Validation dataset length: {:d}'.format(valid_dataset.__len__()))
+        data_loader = DataLoader(
+            dataset, batch_size=opt.batch_size, shuffle=True, num_workers=0, pin_memory=True)
+
+        valid_dataset = datasets.Datasets(opt, split=1)  # 验证集
+        print('>>> Validation dataset length: {:d}'.format(
+            valid_dataset.__len__()))
         valid_loader = DataLoader(valid_dataset, batch_size=opt.test_batch_size, shuffle=True, num_workers=0,
                                   pin_memory=True)
 
@@ -64,13 +73,15 @@ def main(opt):
 
     # evaluation
     if opt.is_eval:
-        ret_test = run_model(net_pred, is_train=3, data_loader=test_loader, opt=opt)
+        ret_test = run_model(net_pred, is_train=3,
+                             data_loader=test_loader, opt=opt)
         ret_log = np.array([])
         head = np.array([])
         for k in ret_test.keys():
             ret_log = np.append(ret_log, [ret_test[k]])
             head = np.append(head, [k])
-        log.save_csv_log(opt, head, ret_log, is_create=True, file_name='test_walking')
+        log.save_csv_log(opt, head, ret_log, is_create=True,
+                         file_name='test_walking')
         # print('testing error: {:.3f}'.format(ret_test['m_ang_h36']))
     # training
     if not opt.is_eval:
@@ -78,13 +89,18 @@ def main(opt):
         for epo in range(start_epoch, opt.epoch + 1):
             is_best = False
             # if epo % opt.lr_decay == 0:
-            lr_now = util.lr_decay_mine(optimizer, lr_now, 0.1 ** (1 / opt.epoch))
+            lr_now = util.lr_decay_mine(
+                optimizer, lr_now, 0.1 ** (1 / opt.epoch))
+            # 训练
             print('>>> training epoch: {:d}'.format(epo))
-            ret_train = run_model(net_pred, optimizer, is_train=0, data_loader=data_loader, epo=epo, opt=opt)
+            ret_train = run_model(
+                net_pred, optimizer, is_train=0, data_loader=data_loader, epo=epo, opt=opt)
             print('train error: {:.3f}'.format(ret_train['m_ang_h36']))
+            # 验证
             ret_valid = run_model(net_pred, is_train=1, data_loader=valid_loader, opt=opt,
                                   epo=epo)
             print('validation error: {:.3f}'.format(ret_valid['m_ang_h36']))
+            # 测试
             ret_test = run_model(net_pred, is_train=32, data_loader=test_loader, opt=opt,
                                  epo=epo)
             print('testing error: {:.3f}'.format(ret_test['#1']))
@@ -100,6 +116,7 @@ def main(opt):
                 ret_log = np.append(ret_log, [ret_test[k]])
                 head = np.append(head, ['test_' + k])
             log.save_csv_log(opt, head, ret_log, is_create=(epo == 1))
+            # 保存最好的模型
             if ret_valid['m_ang_h36'] < err_best:
                 err_best = ret_valid['m_ang_h36']
                 is_best = True
@@ -118,6 +135,7 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
         net_pred.eval()
 
     l_ang = 0
+    # 不是测试的情况
     if is_train <= 1:
         m_ang_seq = 0
     else:
@@ -133,7 +151,7 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
 
     itera = 1
     idx = np.expand_dims(np.arange(seq_in + out_n), axis=1) + (
-            out_n - seq_in + np.expand_dims(np.arange(itera), axis=0))
+        out_n - seq_in + np.expand_dims(np.arange(itera), axis=0))
     st = time.time()
     for i, (ang_h36) in enumerate(data_loader):
         batch_size, seq_n, _ = ang_h36.shape
@@ -146,7 +164,8 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
 
         ang_sup = ang_h36.clone()[:, :, dim_used][:, -out_n - seq_in:]
         ang_src = ang_h36.clone()[:, :, dim_used]
-        ang_out_all = net_pred(ang_src, output_n=out_n, itera=itera, input_n=in_n)
+        ang_out_all = net_pred(ang_src, output_n=out_n,
+                               itera=itera, input_n=in_n)
 
         ang_out = ang_h36.clone()[:, in_n:in_n + out_n]
         ang_out[:, :, dim_used] = ang_out_all[:, seq_in:, 0]
@@ -154,11 +173,13 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
         # 2d joint loss:
         grad_norm = 0
         if is_train == 0:
-            loss_ang = torch.mean(torch.sum(torch.abs(ang_out_all[:, :, 0] - ang_sup), dim=2))
+            loss_ang = torch.mean(
+                torch.sum(torch.abs(ang_out_all[:, :, 0] - ang_sup), dim=2))
             loss_all = loss_ang
             optimizer.zero_grad()
             loss_all.backward()
-            grad_norm = nn.utils.clip_grad_norm_(list(net_pred.parameters()), max_norm=opt.max_norm)
+            grad_norm = nn.utils.clip_grad_norm_(
+                list(net_pred.parameters()), max_norm=opt.max_norm)
             optimizer.step()
 
             # update log values
@@ -167,30 +188,38 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
         if is_train <= 1:  # if is validation or train simply output the overall mean error
             with torch.no_grad():
                 ang_out_euler = ang_out.reshape([-1, 99]).reshape([-1, 3])
-                ang_gt_euler = ang_h36[:, in_n:in_n + out_n].reshape([-1, 99]).reshape([-1, 3])
+                ang_gt_euler = ang_h36[:, in_n:in_n +
+                                       out_n].reshape([-1, 99]).reshape([-1, 3])
 
                 import utils.data_utils as data_utils
-                ang_out_euler = data_utils.rotmat2euler_torch(data_utils.expmap2rotmat_torch(ang_out_euler))
+                ang_out_euler = data_utils.rotmat2euler_torch(
+                    data_utils.expmap2rotmat_torch(ang_out_euler))
                 ang_out_euler = ang_out_euler.view(-1, 99)
-                ang_gt_euler = data_utils.rotmat2euler_torch(data_utils.expmap2rotmat_torch(ang_gt_euler))
+                ang_gt_euler = data_utils.rotmat2euler_torch(
+                    data_utils.expmap2rotmat_torch(ang_gt_euler))
                 ang_gt_euler = ang_gt_euler.view(-1, 99)
 
-                eulererr_ang_seq = torch.mean(torch.norm(ang_out_euler - ang_gt_euler, dim=1))
+                eulererr_ang_seq = torch.mean(torch.norm(
+                    ang_out_euler - ang_gt_euler, dim=1))
 
             m_ang_seq += eulererr_ang_seq.cpu().data.numpy() * batch_size
         else:
 
             with torch.no_grad():
                 ang_out_euler = ang_out.reshape([-1, 99]).reshape([-1, 3])
-                ang_gt_euler = ang_h36[:, in_n:in_n + out_n].reshape([-1, 99]).reshape([-1, 3])
+                ang_gt_euler = ang_h36[:, in_n:in_n +
+                                       out_n].reshape([-1, 99]).reshape([-1, 3])
 
                 import utils.data_utils as data_utils
-                ang_out_euler = data_utils.rotmat2euler_torch(data_utils.expmap2rotmat_torch(ang_out_euler))
+                ang_out_euler = data_utils.rotmat2euler_torch(
+                    data_utils.expmap2rotmat_torch(ang_out_euler))
                 ang_out_euler = ang_out_euler.view(-1, out_n, 99)
-                ang_gt_euler = data_utils.rotmat2euler_torch(data_utils.expmap2rotmat_torch(ang_gt_euler))
+                ang_gt_euler = data_utils.rotmat2euler_torch(
+                    data_utils.expmap2rotmat_torch(ang_gt_euler))
                 ang_gt_euler = ang_gt_euler.view(-1, out_n, 99)
 
-                eulererr_ang_seq = torch.sum(torch.norm(ang_out_euler - ang_gt_euler, dim=2), dim=0)
+                eulererr_ang_seq = torch.sum(torch.norm(
+                    ang_out_euler - ang_gt_euler, dim=2), dim=0)
             m_ang_seq += eulererr_ang_seq.cpu().data.numpy()
         if i % 1000 == 0:
             print('{}/{}|bt {:.3f}s|tt{:.0f}s|gn{}'.format(i + 1, len(data_loader), time.time() - bt,
